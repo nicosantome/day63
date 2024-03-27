@@ -66,20 +66,27 @@ def add():
     return render_template('add.html')
 
 
-@app.route('/edit/<title>', methods=['GET', 'POST'])
-def edit(title):
+@app.route('/edit', methods=['GET', 'POST'])
+def edit():
     if request.method == "GET":
         with app.app_context():
-            book = db.session.execute(db.select(Book).where(Book.title == title)).scalar()
+            book = db.session.execute(db.select(Book).where(Book.id == request.args.get('id'))).scalar()
         return render_template('edit.html', book=book)
     elif request.method == "POST":
         with app.app_context():
-            book_to_update = db.session.execute(db.select(Book).where(Book.title == title)).scalar()
+            book_to_update = db.session.execute(db.select(Book).where(Book.id == request.args.get('id'))).scalar()
             book_to_update.rating = request.form["rating"]
             db.session.commit()
 
         return redirect(url_for('home'))
 
+@app.route('/delete')
+def delete():
+    with app.app_context():
+        book_to_delete = db.session.execute(db.select(Book).where(Book.id == request.args.get('id'))).scalar()
+        db.session.delete(book_to_delete)
+        db.session.commit()
+    return redirect(url_for('home'))
 
 
 if __name__ == "__main__":
