@@ -50,8 +50,7 @@ with app.app_context():
 def home():
     with app.app_context():
         result = db.session.execute(db.select(Book).order_by(Book.title))
-        all_books = result.scalars().all()  # Collect all books in a list
-        print(all_books)
+        all_books = result.scalars().all()
     return render_template('index.html', books=all_books)
 
 
@@ -65,6 +64,22 @@ def add():
             db.session.commit()
         return redirect(url_for('home'))
     return render_template('add.html')
+
+
+@app.route('/edit/<title>', methods=['GET', 'POST'])
+def edit(title):
+    if request.method == "GET":
+        with app.app_context():
+            book = db.session.execute(db.select(Book).where(Book.title == title)).scalar()
+        return render_template('edit.html', book=book)
+    elif request.method == "POST":
+        with app.app_context():
+            book_to_update = db.session.execute(db.select(Book).where(Book.title == title)).scalar()
+            book_to_update.rating = request.form["rating"]
+            db.session.commit()
+
+        return redirect(url_for('home'))
+
 
 
 if __name__ == "__main__":
